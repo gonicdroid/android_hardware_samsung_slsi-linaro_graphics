@@ -30,7 +30,7 @@ LOCAL_SRC_FILES := hwjpeg-base.cpp hwjpeg-v4l2.cpp ExynosJpegEncoder.cpp \
 LOCAL_MODULE := libhwjpeg
 LOCAL_MODULE_TAGS := optional
 
-ifeq ($(BOARD_USES_VENDORIMAGE), true)
+ifneq ($(TARGET_COPY_OUT_VENDOR),)
     LOCAL_PROPRIETARY_MODULE := true
 endif
 

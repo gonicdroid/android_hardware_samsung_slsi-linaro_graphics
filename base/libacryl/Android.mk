@@ -56,7 +56,7 @@ LOCAL_SRC_FILES += acrylic_performance.cpp acrylic_device.cpp
 
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libacryl
-ifeq ($(BOARD_USES_VENDORIMAGE), true)
+ifneq ($(TARGET_COPY_OUT_VENDOR),)
 LOCAL_PROPRIETARY_MODULE := true
 endif
 

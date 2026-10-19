@@ -35,7 +35,7 @@ LOCAL_CFLAGS += -Wno-unused-function
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libexynosgscaler
 
-ifeq ($(BOARD_USES_VENDORIMAGE), true)
+ifneq ($(TARGET_COPY_OUT_VENDOR),)
     LOCAL_PROPRIETARY_MODULE := true
 endif
 

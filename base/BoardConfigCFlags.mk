@@ -4,7 +4,7 @@ ifndef TARGET_SOC_BASE
 	TARGET_SOC_BASE := $(TARGET_SOC)
 endif
 
-ifeq ($(BOARD_USES_VENDORIMAGE), true)
+ifneq ($(TARGET_COPY_OUT_VENDOR),)
 LOCAL_PROPRIETARY_MODULE := true
 endif
 
