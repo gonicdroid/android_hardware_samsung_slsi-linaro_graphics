@@ -89,6 +89,11 @@ int ExynosJpegEncoder::setInBuf(int *piBuf, int *iSize)
     return 0;
 }
 
+int ExynosJpegEncoder::setOutBuf(int iBuf, int iSize)
+{
+    return setOutBuf(iBuf, iSize, 0);
+}
+
 int ExynosJpegEncoder::setOutBuf(int iBuf, int iSize, int offset)
 {
     if (!m_hwjpeg.SetJpegBuffer(iBuf, static_cast<size_t>(iSize), offset))

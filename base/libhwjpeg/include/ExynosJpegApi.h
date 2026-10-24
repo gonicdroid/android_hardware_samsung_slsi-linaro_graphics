@@ -125,7 +125,8 @@ public:
     int getOutBuf(char **pcBuf, int *piOutputSize);
 
     int setInBuf(int *piBuf, int *iSize);
-    int setOutBuf(int iBuf, int iSize, int offset = 0);
+    int setOutBuf(int iBuf, int iSize);
+    int setOutBuf(int iBuf, int iSize, int offset);
     int setInBuf(char **pcBuf, int *iSize);
     int setOutBuf(char *pcBuf, int iSize);
 
