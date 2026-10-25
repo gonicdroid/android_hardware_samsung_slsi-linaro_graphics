@@ -108,6 +108,41 @@ bool CScalerM2M1SHOT::Run()
 {
     int ret;
 
+    // Check if dmabuf size is smaller than requested buffer size due to alignment inflation (e.g. 2576x1932 aligned up to 1936)
+    if (m_task.buf_out.type == M2M1SHOT_BUFFER_DMABUF && m_task.buf_out.plane[0].fd >= 0) {
+        off_t dma_size = lseek(m_task.buf_out.plane[0].fd, 0, SEEK_END);
+        lseek(m_task.buf_out.plane[0].fd, 0, SEEK_SET);
+        if (dma_size > 0 && (size_t)dma_size < m_task.buf_out.plane[0].len) {
+            unsigned int actual_w = m_task.fmt_out.crop.left + m_task.fmt_out.crop.width;
+            unsigned int actual_h = m_task.fmt_out.crop.top + m_task.fmt_out.crop.height;
+            unsigned int new_w = (actual_w > 0 && actual_w < m_task.fmt_out.width) ? actual_w : m_task.fmt_out.width;
+            unsigned int new_h = (actual_h > 0 && actual_h < m_task.fmt_out.height) ? actual_h : m_task.fmt_out.height;
+            if (new_w != m_task.fmt_out.width || new_h != m_task.fmt_out.height) {
+                SC_LOGI("Clamping fmt_out size from %ux%u to %ux%u to fit dmabuf (%zu < %zu)",
+                        m_task.fmt_out.width, m_task.fmt_out.height, new_w, new_h,
+                        (size_t)dma_size, m_task.buf_out.plane[0].len);
+                SetFormat(m_task.fmt_out, m_task.buf_out, new_w, new_h, m_task.fmt_out.fmt);
+            }
+        }
+    }
+
+    if (m_task.buf_cap.type == M2M1SHOT_BUFFER_DMABUF && m_task.buf_cap.plane[0].fd >= 0) {
+        off_t dma_size = lseek(m_task.buf_cap.plane[0].fd, 0, SEEK_END);
+        lseek(m_task.buf_cap.plane[0].fd, 0, SEEK_SET);
+        if (dma_size > 0 && (size_t)dma_size < m_task.buf_cap.plane[0].len) {
+            unsigned int actual_w = m_task.fmt_cap.crop.left + m_task.fmt_cap.crop.width;
+            unsigned int actual_h = m_task.fmt_cap.crop.top + m_task.fmt_cap.crop.height;
+            unsigned int new_w = (actual_w > 0 && actual_w < m_task.fmt_cap.width) ? actual_w : m_task.fmt_cap.width;
+            unsigned int new_h = (actual_h > 0 && actual_h < m_task.fmt_cap.height) ? actual_h : m_task.fmt_cap.height;
+            if (new_w != m_task.fmt_cap.width || new_h != m_task.fmt_cap.height) {
+                SC_LOGI("Clamping fmt_cap size from %ux%u to %ux%u to fit dmabuf (%zu < %zu)",
+                        m_task.fmt_cap.width, m_task.fmt_cap.height, new_w, new_h,
+                        (size_t)dma_size, m_task.buf_cap.plane[0].len);
+                SetFormat(m_task.fmt_cap, m_task.buf_cap, new_w, new_h, m_task.fmt_cap.fmt);
+            }
+        }
+    }
+
     if (LibScaler::UnderOne16thScaling(
                 m_task.fmt_out.crop.width, m_task.fmt_out.crop.height,
                 m_task.fmt_cap.crop.width, m_task.fmt_cap.crop.height,
@@ -116,7 +151,7 @@ bool CScalerM2M1SHOT::Run()
 
     ret = ioctl(m_iFD, M2M1SHOT_IOC_PROCESS, &m_task);
     if (ret < 0) {
-        SC_LOGERR("Failed to process the given M2M1SHOT task");
+        SC_LOGERR("Failed to process the given M2M1SHOT task (ret=%d, errno=%d: %s)", ret, errno, strerror(errno));
         return false;
     }
 
