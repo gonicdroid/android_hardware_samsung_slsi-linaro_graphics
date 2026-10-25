@@ -104,6 +104,8 @@ CScalerM2M1SHOT::~CScalerM2M1SHOT()
         close(m_iFD);
 }
 
+#define SCALER_EXT_SIZE		512
+
 bool CScalerM2M1SHOT::Run()
 {
     int ret;
@@ -112,7 +114,7 @@ bool CScalerM2M1SHOT::Run()
     if (m_task.buf_out.type == M2M1SHOT_BUFFER_DMABUF && m_task.buf_out.plane[0].fd >= 0) {
         off_t dma_size = lseek(m_task.buf_out.plane[0].fd, 0, SEEK_END);
         lseek(m_task.buf_out.plane[0].fd, 0, SEEK_SET);
-        if (dma_size > 0 && (size_t)dma_size < m_task.buf_out.plane[0].len) {
+        if (dma_size > 0 && (size_t)dma_size + SCALER_EXT_SIZE < m_task.buf_out.plane[0].len) {
             unsigned int actual_w = m_task.fmt_out.crop.left + m_task.fmt_out.crop.width;
             unsigned int actual_h = m_task.fmt_out.crop.top + m_task.fmt_out.crop.height;
             unsigned int new_w = (actual_w > 0 && actual_w < m_task.fmt_out.width) ? actual_w : m_task.fmt_out.width;
@@ -129,7 +131,7 @@ bool CScalerM2M1SHOT::Run()
     if (m_task.buf_cap.type == M2M1SHOT_BUFFER_DMABUF && m_task.buf_cap.plane[0].fd >= 0) {
         off_t dma_size = lseek(m_task.buf_cap.plane[0].fd, 0, SEEK_END);
         lseek(m_task.buf_cap.plane[0].fd, 0, SEEK_SET);
-        if (dma_size > 0 && (size_t)dma_size < m_task.buf_cap.plane[0].len) {
+        if (dma_size > 0 && (size_t)dma_size + SCALER_EXT_SIZE < m_task.buf_cap.plane[0].len) {
             unsigned int actual_w = m_task.fmt_cap.crop.left + m_task.fmt_cap.crop.width;
             unsigned int actual_h = m_task.fmt_cap.crop.top + m_task.fmt_cap.crop.height;
             unsigned int new_w = (actual_w > 0 && actual_w < m_task.fmt_cap.width) ? actual_w : m_task.fmt_cap.width;
@@ -158,7 +160,6 @@ bool CScalerM2M1SHOT::Run()
     return true;
 }
 
-#define SCALER_EXT_SIZE		512
 bool CScalerM2M1SHOT::SetFormat(m2m1shot_pix_format &fmt, m2m1shot_buffer &buf,
         unsigned int width, unsigned int height, unsigned int v4l2_fmt) {
     const PixFormat *pixfmt = NULL;
