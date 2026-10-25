@@ -72,9 +72,6 @@ class ExynosJpegEncoderForCamera: public ExynosJpegEncoder {
 
     pthread_t m_threadWorker;
 
-    extra_appinfo_t m_extraInfo;
-    app_info_t m_appInfo[15];
-
     bool AllocThumbBuffer(int v4l2Format); /* For single compression */
     bool AllocThumbJpegBuffer(); /* For BTB compression */
     bool GenerateThumbnailImage();

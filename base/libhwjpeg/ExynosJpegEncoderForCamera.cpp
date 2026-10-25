@@ -110,8 +110,6 @@ ExynosJpegEncoderForCamera::ExynosJpegEncoderForCamera(bool bBTBComp)
     if (IsBTBCompressionSupported())
         SetState(STATE_THUMBSIZE_CHANGED);
 
-    m_extraInfo.appInfo = m_appInfo;
-
     mThumbnailScaler.reset(ThumbnailScaler::createInstance());
     if (!mThumbnailScaler->available())
         ALOGW("Thumbnail scaler is not available.");
@@ -350,13 +348,20 @@ int ExynosJpegEncoderForCamera::encode(int *size, exif_attribute_t *exifInfo,
         return encode(size, exifInfo, fdJpegBuffer, pcJpegBuffer, extra);
     }
 
-    m_extraInfo.num_of_appmarker = 0;
-    memset(m_appInfo, 0, sizeof(m_appInfo));
+    extra_appinfo_t extraInfo;
+    app_info_t appInfo[15];
 
-    ExtractDebugAttributeInfo(debugInfo, &m_extraInfo);
+    extraInfo.num_of_appmarker = 0;
+    extraInfo.appInfo = appInfo;
+    memset(appInfo, 0, sizeof(appInfo));
 
-    return encode(size, exifInfo, fdJpegBuffer, pcJpegBuffer, &m_extraInfo);
+    ExtractDebugAttributeInfo(debugInfo, &extraInfo);
+
+    return encode(size, exifInfo, fdJpegBuffer, pcJpegBuffer, &extraInfo);
 }
+
+static_assert(sizeof(ExynosJpegEncoderForCamera) == 1024,
+              "ExynosJpegEncoderForCamera size must be 1024 bytes to match libexynoscamera3 ABI");
 
 int ExynosJpegEncoderForCamera::encode(int *size, exif_attribute_t *exifInfo,
                                        int fdJpegBuffer, char** pcJpegBuffer,
