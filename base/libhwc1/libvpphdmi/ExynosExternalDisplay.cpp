@@ -799,6 +799,9 @@ int32_t ExynosExternalDisplay::getDisplayAttributes(const uint32_t attribute, ui
     case HWC_DISPLAY_DPI_Y:
         return this->mYdpi;
 
+    case HWC_DISPLAY_COLOR_TRANSFORM:
+        return 0;
+
     default:
         ALOGE("unknown display attribute %u", attribute);
         return -EINVAL;

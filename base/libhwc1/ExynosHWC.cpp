@@ -535,13 +535,15 @@ int exynos5_blank(struct hwc_composer_device_1 *dev, int disp, int blank)
         }
         int err = ioctl(pdev->primaryDisplay->mDisplayFd, FBIOBLANK, fb_blank);
         if (err < 0) {
-            if (errno == EBUSY)
+            if (errno == EBUSY) {
                 ALOGI("%sblank ioctl failed (display already %sblanked)",
                         blank ? "" : "un", blank ? "" : "un");
-            else
+                err = 0;
+            } else {
                 ALOGE("%sblank ioctl failed: %s", blank ? "" : "un",
                         strerror(errno));
-            return -errno;
+                return -errno;
+            }
         }
         break;
     }
@@ -698,17 +700,27 @@ int exynos5_getDisplayAttributes(struct hwc_composer_device_1 *dev,
                    (struct exynos5_hwc_composer_device_1_t *)dev;
 
     for (int i = 0; attributes[i] != HWC_DISPLAY_NO_ATTRIBUTE; i++) {
-        if (disp == HWC_DISPLAY_PRIMARY)
+        if (disp == HWC_DISPLAY_PRIMARY) {
             values[i] = pdev->primaryDisplay->getDisplayAttributes(attributes[i]);
-        else if (disp == HWC_DISPLAY_EXTERNAL) {
-            if (hwcHasApiVersion((hwc_composer_device_1_t*)dev, HWC_DEVICE_API_VERSION_1_4))
+            if (values[i] < 0)
+                return values[i];
+        } else if (disp == HWC_DISPLAY_EXTERNAL) {
+            if (hwcHasApiVersion((hwc_composer_device_1_t*)dev, HWC_DEVICE_API_VERSION_1_4)) {
                 values[i] = pdev->externalDisplay->getDisplayAttributes(attributes[i], config);
-            else
+                if (values[i] < 0)
+                    return values[i];
+            } else {
                 values[i] = exynos5_hdmi_attribute(pdev, attributes[i]);
+                if (values[i] < 0)
+                    return values[i];
+            }
         }
 #ifdef USES_VIRTUAL_DISPLAY
-        else if (disp == HWC_DISPLAY_VIRTUAL)
+        else if (disp == HWC_DISPLAY_VIRTUAL) {
             values[i] = pdev->virtualDisplay->getDisplayAttributes(attributes[i]);
+            if (values[i] < 0)
+                return values[i];
+        }
 #endif
         else {
             ALOGE("unknown display type %u", disp);
@@ -854,13 +866,15 @@ int exynos_setPowerMode(struct hwc_composer_device_1* dev, int disp, int mode)
         }
         int err = ioctl(pdev->primaryDisplay->mDisplayFd, FBIOBLANK, fb_blank);
         if (err < 0) {
-            if (errno == EBUSY)
+            if (errno == EBUSY) {
                 ALOGI("%sblank ioctl failed (display already %sblanked)",
                         blank ? "" : "un", blank ? "" : "un");
-            else
+                err = 0;
+            } else {
                 ALOGE("%sblank ioctl failed: %s", blank ? "" : "un",
                         strerror(errno));
-            return -errno;
+                return -errno;
+            }
         }
         break;
     }
